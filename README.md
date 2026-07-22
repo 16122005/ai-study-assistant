@@ -1,3 +1,4 @@
+
 # 🚀 AI Study Assistant App
 
 An advanced, full-stack AI study assistant designed to help students master academic concepts, solve complex problems, organize their study sessions, and review material efficiently.
@@ -22,20 +23,48 @@ An advanced, full-stack AI study assistant designed to help students master acad
    ```bash
    git clone [https://github.com/16122005/ai-study-assistant.git](https://github.com/16122005/ai-study-assistant.git)
    cd ai-study-assistant
-   Install dependencies:
-   npm install
-   Configure Environment Variables:
-Create a .env file in the root directory and add your Gemini API key:
+
+```
+
+2. **Install dependencies:**
+```bash
+npm install
+
+```
+
+
+3. **Configure Environment Variables:**
+Create a `.env` file in the root directory and add your Gemini API key:
+```env
 GEMINI_API_KEY=your_actual_api_key_here
-Run the server:
+
+```
+
+
+4. **Run the server:**
+```bash
 node server.js
-Open your browser and navigate to http://localhost:5000.
 
-🚀 Deployment on Vercel
-Push your repository to GitHub.
+```
 
-Import the repository into Vercel.
 
-Add your environment variable (GEMINI_API_KEY) in the Vercel project settings under Environment Variables.
+Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
 
-Click Deploy.
+## 🚀 Deployment on Vercel
+
+1. Push your repository to GitHub.
+2. Import the repository into [Vercel](https://vercel.com/).
+3. Add your environment variable (`GEMINI_API_KEY`) in the Vercel project settings under Environment Variables.
+4. Click **Deploy**.
+
+```
+
+### Push the fix:
+Run these commands in your VS Code terminal:
+
+```bash
+git add README.md
+git commit -m "Fix markdown formatting in README"
+git push origin main
+
+```
