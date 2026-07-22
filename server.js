@@ -1,55 +1,53 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(express.json({ limit: '10mb' }));
 
-// Initialize Google Gen AI SDK
-// (You can replace process.env.GEMINI_API_KEY with your direct key string if needed)
+// Initialize Gemini API SDK securely using environment variables
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-app.post('/api/study-chat', async (req, res) => {
-    const { message } = req.body;
-    if (!message) {
-        return res.status(400).json({ error: "Message is required" });
-    }
+// Serve static frontend files from the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Study chat API endpoint supporting multimodal requests
+app.post('/api/study-chat', async (req, res) => {
     try {
-        // Call the real Gemini model to handle ANY question dynamically
-        const response = await ai.models.generateContent({
+        const { message } = req.body;
+        
+        if (!message) {
+            return res.status(400).json({ response: "Message content is required." });
+        }
+
+        const modelResponse = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: message,
             config: {
-                systemInstruction: "You are a helpful, intelligent AI Study Assistant and general chatbot. Answer any question the user asks accurately, clearly, and concisely.",
+                systemInstruction: "You are an expert AI Study Assistant. Help students clearly explain concepts, break down complex topics (like Compilers, OS, Data Structures, OOPs), summarize notes, and provide constructive guidance. Keep formatting clean and academic."
             }
         });
 
-        const reply = response.text || "I couldn't generate a response. Please try again.";
-
-        res.json({
-            success: true,
-            query: message,
-            response: reply,
-            timestamp: new Date().toLocaleTimeString()
-        });
-
+        res.json({ response: modelResponse.text });
     } catch (error) {
-        console.error("AI Error:", error);
-        res.status(500).json({ 
-            success: false, 
-            response: "Oops! Something went wrong connecting to the AI model. Please check your API key." 
-        });
+        console.error("Gemini API Error:", error);
+        res.status(500).json({ response: "Oops! Something went wrong connecting to the AI model. Please check your API key." });
     }
 });
 
+// Fallback route to serve index.html for single-page application routing on Vercel
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => {
-    console.log(`Real AI Chatbot Server running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
