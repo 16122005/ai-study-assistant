@@ -1,4 +1,4 @@
-
+```markdown
 # 🚀 AI Study Assistant App
 
 An advanced, full-stack AI study assistant designed to help students master academic concepts, solve complex problems, organize their study sessions, and review material efficiently.
@@ -19,52 +19,58 @@ An advanced, full-stack AI study assistant designed to help students master acad
 
 ## ⚙️ Local Installation & Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/16122005/ai-study-assistant.git](https://github.com/16122005/ai-study-assistant.git)
-   cd ai-study-assistant
+Open a new terminal and run the following commands:
 
-```
-
-2. **Install dependencies:**
 ```bash
+git clone [https://github.com/16122005/ai-study-assistant.git](https://github.com/16122005/ai-study-assistant.git)
+cd ai-study-assistant
 npm install
 
 ```
 
-
-3. **Configure Environment Variables:**
+Configure Environment Variables:
 Create a `.env` file in the root directory and add your Gemini API key:
+
 ```env
 GEMINI_API_KEY=your_actual_api_key_here
 
 ```
 
+Run the server:
 
-4. **Run the server:**
 ```bash
 node server.js
 
 ```
 
+Open your browser and navigate to:
 
-Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
-
-## 🚀 Deployment on Vercel
-
-1. Push your repository to GitHub.
-2. Import the repository into [Vercel](https://vercel.com/).
-3. Add your environment variable (`GEMINI_API_KEY`) in the Vercel project settings under Environment Variables.
-4. Click **Deploy**.
+```url
+http://localhost:5000
 
 ```
 
-### Push the fix:
-Run these commands in your VS Code terminal:
+## 🚀 Deployment
+
+### Platform: Vercel
+
+* **Root Directory:** `./`
+* **Build Command:** *(Leave default or empty)*
+* **Start Command:**
 
 ```bash
-git add README.md
-git commit -m "Fix markdown formatting in README"
-git push origin main
+node server.js
+
+```
+
+### Environment Variables:
+
+* `GEMINI_API_KEY` = *your_actual_gemini_api_key*
+
+## Live URL
+
+[https://ai-study-assistant-henna.vercel.app](https://www.google.com/search?q=https://ai-study-assistant-henna.vercel.app)
+
+```
 
 ```
