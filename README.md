@@ -28,12 +28,6 @@ npm install
 
 ```
 
-Configure Environment Variables:
-Create a `.env` file in the root directory and add your Gemini API key:
-
-```env
-GEMINI_API_KEY=your_actual_api_key_here
-
 ```
 
 Run the server:
@@ -63,9 +57,7 @@ node server.js
 
 ```
 
-### Environment Variables:
 
-* `GEMINI_API_KEY` = *your_actual_gemini_api_key*
 
 ## Live URL
 
