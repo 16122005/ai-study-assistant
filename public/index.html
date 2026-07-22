@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-all duration-300 z-20">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <button onclick="startNewChat()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-md">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>New Chat</span>
+            </button>
+        </div>
+        <div id="sessionList" class="flex-1 overflow-y-auto p-3 space-y-1.5 text-xs"></div>
+        <div class="p-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">AI</div>
+                <span class="font-medium text-slate-200">Study Assistant</span>
+            </div>
+            <span id="streakCount" class="bg-slate-800 text-indigo-400 px-2 py-1 rounded-lg font-bold">🔥 0 Sessions</span>
+        </div>
+    </aside>
+
+    <!-- MAIN CHAT AREA -->
+    <main class="flex-1 flex flex-col justify-between h-full bg-slate-950 relative">
+        <header class="bg-slate-900/60 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between shadow-sm z-10">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-2 rounded-lg transition">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+                <h1 id="currentChatTitle" class="font-bold text-white text-sm">New Conversation</h1>
+            </div>
+
+            <div class="flex items-center space-x-3 bg-slate-950 border border-slate-800 px-4 py-1.5 rounded-2xl shadow-inner">
+                <div class="flex items-center space-x-1.5 text-indigo-400 text-xs font-bold">
+                    <i class="fa-solid fa-clock"></i>
+                    <span id="timerDisplay">25:00</span>
+                </div>
+                <div class="h-4 w-px bg-slate-800"></div>
+                <button onclick="toggleTimer()" id="timerToggleBtn" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-xl font-bold transition">Start</button>
+                <button onclick="resetTimer()" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+        </header>
+
+        <div id="chatContainer" class="flex-1 overflow-y-auto p-6 space-y-5 max-w-4xl w-full mx-auto">
+            <div class="flex items-start space-x-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-robot"></i></div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm text-slate-300 max-w-xl leading-relaxed shadow-sm">
+                    Hello! I am your AI Study Assistant. Upload images/notes using the paperclip icon and use the flashcards or timer to boost productivity!
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl w-full mx-auto p-4 space-y-3">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                <span class="text-slate-500 font-semibold whitespace-nowrap">Suggestions:</span>
+                <button onclick="sendPreset('Explain compiler phases')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl transition whitespace-nowrap">💻 Compilers</button>
+                <button onclick="sendPreset('What are CPU scheduling algorithms in OS?')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl transition whitespace-nowrap">🖥️ Operating Systems</button>
+                <button onclick="sendPreset('Explain database joins with examples')" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-xl transition whitespace-nowrap">🗄️ Database Joins</button>
+            </div>
+
+            <!-- Image Preview Area -->
+            <div id="imagePreviewContainer" class="hidden flex items-center space-x-3 bg-slate-900 border border-slate-800 p-2 rounded-xl max-w-xs">
+                <img id="imagePreview" src="" alt="Preview" class="w-12 h-12 object-cover rounded-lg">
+                <div class="flex-1 truncate text-xs text-slate-300" id="imageName">Image attached</div>
+                <button type="button" onclick="removeImage()" class="text-slate-400 hover:text-red-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="chatForm" class="flex items-center gap-3 bg-slate-900 border border-slate-800 p-2.5 rounded-2xl shadow-xl">
+                <!-- Hidden File Input -->
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                <button type="button" onclick="document.getElementById('fileInput').click()" class="text-slate-400 hover:text-indigo-400 px-2 py-1 transition text-base" title="Upload Image / Notes">
+                    <i class="fa-solid fa-paperclip"></i>
+                </button>
+
+                <input type="text" id="userInput" placeholder="Ask any study question or attach notes..." class="flex-1 bg-transparent border-none px-2 py-2 text-sm text-white focus:outline-none placeholder:text-slate-500">
+                
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl text-xs font-bold transition shadow-md flex items-center space-x-2">
+                    <span>Send</span>
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- FLASHCARD MODAL OVERLAY -->
+    <div id="flashcardModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-indigo-400 font-bold text-sm">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Interactive Study Flashcard</span>
+                </div>
+                <button onclick="closeFlashcard()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div onclick="flipCard()" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 h-48 flex flex-col justify-center items-center text-center cursor-pointer relative shadow-inner group">
+                <span class="absolute top-3 left-4 text-[10px] text-indigo-400 font-bold uppercase tracking-wider" id="cardLabel">Question (Click to Flip)</span>
+                <p id="cardContent" class="text-sm text-slate-200 font-medium leading-relaxed px-2">Loading...</p>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+                <button onclick="prevCard()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl font-semibold transition">Previous</button>
+                <span id="cardCounter" class="text-slate-500 font-bold">1 / 3</span>
+                <button onclick="nextCard()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold transition">Next Card</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 border border-slate-700 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center space-x-2">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastMsg">Action completed!</span>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let sessions = JSON.parse(localStorage.getItem("ai_chat_sessions")) || [{ id: '1', title: 'New Conversation', messages: [] }];
+        let currentSessionId = localStorage.getItem("ai_current_session") || sessions[0].id;
+        let focusCount = parseInt(localStorage.getItem("ai_focus_count")) || 0;
+        
+        let activeFlashcards = [];
+        let currentCardIndex = 0;
+        let showingAnswer = false;
+        let attachedImageBase64 = null;
+
+        // Pomodoro State
+        let timeLeft = 25 * 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        const chatForm = document.getElementById("chatForm");
+        const userInput = document.getElementById("userInput");
+        const chatContainer = document.getElementById("chatContainer");
+        const sessionList = document.getElementById("sessionList");
+        const currentChatTitle = document.getElementById("currentChatTitle");
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSessions();
+            loadCurrentSession();
+            updateStreakDisplay();
+        });
+
+        // --- IMAGE ATTACHMENT LOGIC ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                attachedImageBase64 = e.target.result;
+                document.getElementById("imagePreview").src = attachedImageBase64;
+                document.getElementById("imageName").innerText = file.name;
+                document.getElementById("imagePreviewContainer").classList.remove("hidden");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            attachedImageBase64 = null;
+            document.getElementById("fileInput").value = "";
+            document.getElementById("imagePreviewContainer").classList.add("hidden");
+        }
+
+        // --- POMODORO TIMER LOGIC ---
+        function toggleTimer() {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById("timerToggleBtn").innerText = "Resume";
+                document.getElementById("timerToggleBtn").className = "text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-xl font-bold transition";
+            } else {
+                isTimerRunning = true;
+                document.getElementById("timerToggleBtn").innerText = "Pause";
+                document.getElementById("timerToggleBtn").className = "text-xs bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-xl font-bold transition";
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        focusCount++;
+                        localStorage.setItem("ai_focus_count", focusCount);
+                        updateStreakDisplay();
+                        showToast("🎉 Pomodoro session completed!");
+                        timeLeft = 25 * 60;
+                        document.getElementById("timerToggleBtn").innerText = "Start";
+                        document.getElementById("timerToggleBtn").className = "text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-xl font-bold transition";
+                        updateTimerDisplay();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 25 * 60;
+            updateTimerDisplay();
+            document.getElementById("timerToggleBtn").innerText = "Start";
+            document.getElementById("timerToggleBtn").className = "text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-xl font-bold transition";
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById("timerDisplay").innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateStreakDisplay() {
+            document.getElementById("streakCount").innerText = `🔥 ${focusCount} Sessions`;
+        }
+
+        // --- CHAT & SIDEBAR LOGIC ---
+        function toggleSidebar() { document.getElementById("sidebar").classList.toggle("-ml-72"); }
+        function startNewChat() {
+            const newId = Date.now().toString();
+            sessions.unshift({ id: newId, title: 'New Conversation', messages: [] });
+            currentSessionId = newId;
+            saveAndRefresh();
+        }
+        function switchSession(id) { currentSessionId = id; saveAndRefresh(); }
+        function saveAndRefresh() {
+            localStorage.setItem("ai_chat_sessions", JSON.stringify(sessions));
+            localStorage.setItem("ai_current_session", currentSessionId);
+            renderSessions();
+            loadCurrentSession();
+        }
+        function renderSessions() {
+            sessionList.innerHTML = "";
+            sessions.forEach(session => {
+                const isActive = session.id === currentSessionId;
+                const div = document.createElement("div");
+                div.className = `px-3 py-2.5 rounded-xl cursor-pointer transition flex items-center justify-between group ${isActive ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`;
+                div.innerHTML = `
+                    <div onclick="switchSession('${session.id}')" class="truncate flex-1 flex items-center space-x-2">
+                        <i class="fa-regular fa-message text-xs"></i>
+                        <span class="truncate">${session.title}</span>
+                    </div>
+                    ${sessions.length > 1 ? `<button onclick="deleteSession(event, '${session.id}')" class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>` : ''}
+                `;
+                sessionList.appendChild(div);
+            });
+        }
+        function deleteSession(e, id) {
+            e.stopPropagation();
+            sessions = sessions.filter(s => s.id !== id);
+            if (sessions.length === 0) sessions = [{ id: Date.now().toString(), title: 'New Conversation', messages: [] }];
+            currentSessionId = sessions[0].id;
+            saveAndRefresh();
+        }
+        function loadCurrentSession() {
+            const session = sessions.find(s => s.id === currentSessionId) || sessions[0];
+            currentChatTitle.innerText = session.title;
+            chatContainer.innerHTML = "";
+            if (session.messages.length === 0) {
+                chatContainer.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-robot"></i></div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm text-slate-300 max-w-xl leading-relaxed shadow-sm">
+                            Hello! I am your AI Study Assistant. Upload images/notes using the paperclip icon and use the flashcards or timer to stay focused!
+                        </div>
+                    </div>
+                `;
+            } else {
+                session.messages.forEach(msg => appendMessageDOM(msg.text, msg.sender, msg.image, false));
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const val = userInput.value.trim();
+            const img = attachedImageBase64;
+            if(!val && !img) return;
+
+            userInput.value = "";
+            removeImage();
+            await processMessage(val || "Analyze this image/notes", img);
+        });
+
+        async function sendPreset(text) { await processMessage(text, null); }
+
+        async function processMessage(text, image) {
+            const session = sessions.find(s => s.id === currentSessionId);
+            if (session.title === 'New Conversation') session.title = text.length > 25 ? text.substring(0, 25) + '...' : text;
+            
+            appendMessageDOM(text, 'user', image, true);
+            const loadingId = appendLoadingIndicator();
+
+            try {
+                const payloadMessage = image ? `${text} [Image attached for analysis]` : text;
+
+                const response = await fetch('http://localhost:5000/api/study-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: payloadMessage })
+                });
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+                appendMessageDOM(data.response, 'bot', null, true);
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                appendMessageDOM("Error: Could not connect to the Express server.", 'bot', null, true);
+            }
+        }
+
+        function appendMessageDOM(text, sender, image, saveToStorage) {
+            const isUser = sender === 'user';
+            const div = document.createElement("div");
+            div.className = `flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
+            
+            let formattedText = text.replace(/\n/g, '<br>');
+            let imageTag = image ? `<img src="${image}" class="max-w-xs rounded-xl mb-3 border border-slate-700">` : '';
+
+            let actionButtons = !isUser ? `
+                <div class="flex flex-wrap items-center gap-3 mt-3 pt-2 border-t border-slate-800 text-xs text-slate-400">
+                    <button onclick="copyText(this)" data-content="${encodeURIComponent(text)}" class="hover:text-white flex items-center space-x-1 transition"><i class="fa-regular fa-copy"></i><span>Copy</span></button>
+                    <button onclick="speakText(this)" data-content="${encodeURIComponent(text)}" class="hover:text-indigo-400 flex items-center space-x-1 transition"><i class="fa-solid fa-volume-high"></i><span>Read Aloud</span></button>
+                    <button onclick="generateFlashcards(this)" data-content="${encodeURIComponent(text)}" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 border border-indigo-500/30 px-2.5 py-1 rounded-lg flex items-center space-x-1 transition font-semibold"><i class="fa-solid fa-bolt"></i><span>⚡ Flashcard</span></button>
+                </div>
+            ` : '';
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full ${isUser ? 'bg-emerald-600' : 'bg-indigo-600'} flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i></div>
+                <div class="${isUser ? 'bg-indigo-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-300'} rounded-2xl p-4 text-sm max-w-xl leading-relaxed shadow-sm">
+                    ${imageTag}
+                    <div>${formattedText}</div>
+                    ${actionButtons}
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (saveToStorage) {
+                sessions.find(s => s.id === currentSessionId).messages.push({ text, sender, image });
+                saveAndRefresh();
+            }
+        }
+
+        function appendLoadingIndicator() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement("div");
+            div.id = id;
+            div.className = "flex items-start space-x-3";
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-robot"></i></div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm text-slate-400 flex items-center space-x-1.5 shadow-sm">
+                    <span>Analyzing notes & generating response</span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return id;
+        }
+
+        function generateFlashcards(btn) {
+            const rawText = decodeURIComponent(btn.getAttribute("data-content"));
+            const sentences = rawText.split(/[\n\.\?!]+/).filter(s => s.trim().length > 15);
+            if (sentences.length === 0) { showToast("Not enough text content."); return; }
+            activeFlashcards = [];
+            for (let i = 0; i < sentences.length; i += 2) {
+                activeFlashcards.push({
+                    q: "What is the key takeaway regarding: \"" + sentences[i].substring(0, 45) + "...\"?",
+                    a: sentences[i].trim() + (sentences[i+1] ? ". " + sentences[i+1].trim() + "." : "")
+                });
+            }
+            currentCardIndex = 0;
+            showingAnswer = false;
+            updateCardUI();
+            document.getElementById("flashcardModal").classList.remove("hidden");
+        }
+
+        function updateCardUI() {
+            if (activeFlashcards.length === 0) return;
+            const card = activeFlashcards[currentCardIndex];
+            document.getElementById("cardLabel").innerText = showingAnswer ? "Answer (Click to Flip back)" : `Question ${currentCardIndex + 1} of ${activeFlashcards.length} (Click to Flip)`;
+            document.getElementById("cardContent").innerText = showingAnswer ? card.a : card.q;
+            document.getElementById("cardCounter").innerText = `${currentCardIndex + 1} / ${activeFlashcards.length}`;
+        }
+        function flipCard() { showingAnswer = !showingAnswer; updateCardUI(); }
+        function nextCard() { if (currentCardIndex < activeFlashcards.length - 1) { currentCardIndex++; showingAnswer = false; updateCardUI(); } }
+        function prevCard() { if (currentCardIndex > 0) { currentCardIndex--; showingAnswer = false; updateCardUI(); } }
+        function closeFlashcard() { document.getElementById("flashcardModal").classList.add("hidden"); }
+
+        function copyText(btn) { navigator.clipboard.writeText(decodeURIComponent(btn.getAttribute("data-content"))).then(() => showToast("Copied to clipboard!")); }
+        function speakText(btn) {
+            const rawText = decodeURIComponent(btn.getAttribute("data-content"));
+            if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); window.speechSynthesis.speak(new SpeechSynthesisUtterance(rawText)); showToast("Reading aloud..."); }
+        }
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").innerText = msg;
+            toast.classList.remove("translate-y-24", "opacity-0");
+            toast.classList.add("translate-y-0", "opacity-100");
+            setTimeout(() => { toast.classList.remove("translate-y-0", "opacity-100"); toast.classList.add("translate-y-24", "opacity-0"); }, 2500);
+        }
+    </script>
+</body>
+</html>
