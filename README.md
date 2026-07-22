@@ -69,7 +69,7 @@ node server.js
 
 ## Live URL
 
-[https://ai-study-assistant-henna.vercel.app](https://www.google.com/search?q=https://ai-study-assistant-henna.vercel.app)
+https://ai-study-assistant-alpha-two.vercel.app
 
 ```
 
