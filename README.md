@@ -22,3 +22,20 @@ An advanced, full-stack AI study assistant designed to help students master acad
    ```bash
    git clone [https://github.com/16122005/ai-study-assistant.git](https://github.com/16122005/ai-study-assistant.git)
    cd ai-study-assistant
+   Install dependencies:
+   npm install
+   Configure Environment Variables:
+Create a .env file in the root directory and add your Gemini API key:
+GEMINI_API_KEY=your_actual_api_key_here
+Run the server:
+node server.js
+Open your browser and navigate to http://localhost:5000.
+
+🚀 Deployment on Vercel
+Push your repository to GitHub.
+
+Import the repository into Vercel.
+
+Add your environment variable (GEMINI_API_KEY) in the Vercel project settings under Environment Variables.
+
+Click Deploy.
